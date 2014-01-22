@@ -1,0 +1,5 @@
+target: http://buy.rongyi.com/
+listen:
+  address: "0.0.0.0"
+  port: 8001
+cache: /tmp/cache

@@ -1,0 +1,103 @@
+GIT
+  remote: git://github.com/celluloid/reel.git
+  revision: 1c720fe19a0fbcef927ef25f10fb1037208a9415
+  specs:
+    reel (0.5.0.pre)
+      celluloid (>= 0.15.1)
+      celluloid-io (>= 0.15.0)
+      http (>= 0.5.0)
+      http_parser.rb (>= 0.6.0)
+      websocket_parser (>= 0.1.4)
+
+GEM
+  remote: http://ruby.taobao.org/
+  specs:
+    activesupport (4.0.2)
+      i18n (~> 0.6, >= 0.6.4)
+      minitest (~> 4.2)
+      multi_json (~> 1.3)
+      thread_safe (~> 0.1)
+      tzinfo (~> 0.3.37)
+    atomic (1.1.14)
+    atomic (1.1.14-java)
+    celluloid (0.15.2)
+      timers (~> 1.1.0)
+    celluloid-io (0.15.0)
+      celluloid (>= 0.15.0)
+      nio4r (>= 0.5.0)
+    coderay (1.1.0)
+    connection_pool (1.2.0)
+    ffi (1.9.3)
+    ffi (1.9.3-java)
+    formatador (0.2.4)
+    guard (2.3.0)
+      formatador (>= 0.2.4)
+      listen (~> 2.1)
+      lumberjack (~> 1.0)
+      pry (>= 0.9.12)
+      thor (>= 0.18.1)
+    guard-bundler (2.0.0)
+      bundler (~> 1.0)
+      guard (~> 2.2)
+    guard-process (1.0.6)
+      guard (>= 0.4.2)
+      spoon (~> 0.0.1)
+    http (0.5.0)
+      http_parser.rb
+    http_parser.rb (0.6.0)
+    http_parser.rb (0.6.0-java)
+    i18n (0.6.9)
+    listen (2.4.0)
+      celluloid (>= 0.15.2)
+      rb-fsevent (>= 0.9.3)
+      rb-inotify (>= 0.9)
+    lumberjack (1.0.4)
+    method_source (0.8.2)
+    mini_portile (0.5.1)
+    minitest (4.7.5)
+    multi_json (1.8.4)
+    nio4r (1.0.0)
+    nio4r (1.0.0-java)
+    nokogiri (1.6.0)
+      mini_portile (~> 0.5.0)
+    nokogiri (1.6.0-java)
+      mini_portile (~> 0.5.0)
+    pry (0.9.12.4)
+      coderay (~> 1.0)
+      method_source (~> 0.8)
+      slop (~> 3.4)
+    pry (0.9.12.4-java)
+      coderay (~> 1.0)
+      method_source (~> 0.8)
+      slop (~> 3.4)
+      spoon (~> 0.0)
+    rb-fsevent (0.9.4)
+    rb-inotify (0.9.3)
+      ffi (>= 0.5.0)
+    slop (3.4.7)
+    spoon (0.0.4)
+      ffi
+    thor (0.18.1)
+    thread_safe (0.1.3)
+      atomic
+    thread_safe (0.1.3-java)
+      atomic
+    timers (1.1.0)
+    tzinfo (0.3.38)
+    websocket_parser (0.1.5)
+      http
+
+PLATFORMS
+  java
+  ruby
+
+DEPENDENCIES
+  activesupport
+  celluloid
+  celluloid-io
+  connection_pool
+  guard
+  guard-bundler
+  guard-process
+  nokogiri
+  reel!

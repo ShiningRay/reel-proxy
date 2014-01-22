@@ -1,0 +1,8 @@
+dist/
+.bundle/
+npm-debug.log
+node_modules/
+temp/
+*.swp
+*.*~
+*.tmp
