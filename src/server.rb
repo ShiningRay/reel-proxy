@@ -19,7 +19,7 @@ class ProxyServer < Reel::Server::HTTP
   include Celluloid
   include Celluloid::Notifications
   include Celluloid::Logger
-  attr_reader :configuration, :target
+  attr_reader :configuration, :target, :upstream
   def initialize(host="0.0.0.0", port=8001)
     info "Time server example starting on #{host}:#{port}"
     @configuration = YAML.load_file('config.yml').with_indifferent_access
@@ -36,7 +36,7 @@ class ProxyServer < Reel::Server::HTTP
   end
 
   def store url, res
-    if res.code == "200"
+    if res.code == "200" and res['cache-control'].to_s !~ /no-cache/
       debug "storing #{url}"
       res['Expires'] ||= (Time.now + 1800).httpdate
       publish('stored', url) if Cache.write url, res
