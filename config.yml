@@ -1,4 +1,4 @@
-target: http://buy.rongyi.com/
+target: http://term.rongyi.com/
 listen:
   address: "0.0.0.0"
   port: 8001

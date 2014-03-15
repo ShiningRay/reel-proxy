@@ -1,5 +1,5 @@
 require 'celluloid'
-require 'net/http'
+require 'http'
 require 'uri'
 require_relative './cache'
 
@@ -40,38 +40,36 @@ class ProxyConnectionHandler
       headers['If-Modified-Since'] = cache['Last-Modified'] || cache['Date']
     end
     headers.delete_if { |k, v| v.nil? }
-    Net::HTTP.start uri.host, uri.port do |http|
-      store(uri.to_s, http.request_get(uri, headers))
-    end
+    store(uri.to_s, HTTP.with(headers).get(uri))
   end
 
   def store url, res
     server.async.store url, res
   end
 
-  def pass(request)
+  def pass(request, uri)
     request.headers['Host'] = "#{@target.host}:#{@target.port||80}"
     request.headers.delete 'Accept-Encoding'
-    Net::HTTP.start @target.host, @target.port || 80 do |http|
-      http.send_request request.method, request.url, request.body.to_s, request.headers
-    end
+    debug request.url
+    HTTP.request request.method, uri, headers: request.headers, body: request.body.to_s
   end
 
   def handle_request(request)
     uri = request.uri.dup
     uri.scheme ||= @target.scheme
     uri.host ||= @target.host
+    uri.port ||= 80
     url = uri.to_s
     debug url
     if request.method == 'GET'
-      if upres = Cache.read(url) and upres.is_a?(Net::HTTPResponse)
+      if upres = Cache.read(url) #and upres.is_a?(HTTPResponse)
         debug 'hit'
         async.revalidate(url)
       else
         debug 'miss'
         request.headers.delete 'If-Modified-Since'
         request.headers.delete 'If-None-Match'
-        upres = pass(request)
+        upres = pass(request, uri)
         store(url, upres)
       end
     else
@@ -79,10 +77,10 @@ class ProxyConnectionHandler
     end
 
     h = {}
-    upres.each_header do |key, val|
+    upres.headers.each do |key, val|
       h[key]=val
     end
-    h.delete "transfer-encoding"
+    h.delete "Transfer-Encoding"
     res = Reel::Response.new(upres.code.to_i, h, upres.body)
     request.respond res
   end
