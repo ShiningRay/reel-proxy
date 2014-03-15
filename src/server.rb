@@ -17,7 +17,6 @@ require_relative './connection'
 
 class ProxyServer < Reel::Server::HTTP
   include Celluloid
-  include Celluloid::Notifications
   include Celluloid::Logger
   attr_reader :configuration, :target, :upstream
   def initialize(host="0.0.0.0", port=8001)
@@ -36,22 +35,13 @@ class ProxyServer < Reel::Server::HTTP
   end
 
   def store url, res
-    if res.code == "200" and res['cache-control'].to_s !~ /no-cache/
-      debug "storing #{url}"
-      res['Expires'] ||= (Time.now + 1800).httpdate
-      publish('stored', url) if Cache.write url, res
-    else
-      debug "not 200 ok #{res.code}"
-      debug "#{res.inspect}"
-    end
-    res
   end
 end
 
 ProxyServer.supervise_as :proxy_server
 # Celluloid::Actor[:prefetcher] = Prefetcher.pool
-Prefetcher.supervise_as(:prefetcher, Celluloid::Actor[:proxy_server])
-Analyzer.supervise_as :analyzer, Celluloid::Actor[:prefetcher]
+# Prefetcher.supervise_as(:prefetcher, Celluloid::Actor[:proxy_server])
+# Analyzer.supervise_as :analyzer, Celluloid::Actor[:prefetcher]
 Cache = MyCacheStore.new Celluloid::Actor[:proxy_server].configuration[:cache]
 if __FILE__ == $0
   sleep

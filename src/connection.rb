@@ -6,6 +6,7 @@ require_relative './cache'
 class ProxyConnectionHandler
   include Celluloid
   include Celluloid::Logger
+  include Celluloid::Notifications
   finalizer :on_close
   attr_reader :connection, :server
 
@@ -26,32 +27,39 @@ class ProxyConnectionHandler
   end
 
   def expired?(res)
-    res['Expires'] && Time.parse(res['Expires']).past?
+    res.headers['Expires'] && Time.parse(res.headers['Expires']).past?
   end
 
   def revalidate(uri, force=false)
     uri = URI(uri) if uri.is_a?(String)
     debug "revalidating #{uri}"
-    cache = Cache.read(uri.to_s)
+    cache = load_cache(uri.to_s)
     headers = {}
     if cache
       return if !force and expired?(cache)
-      headers['If-None-Match'] = cache['Etag']
-      headers['If-Modified-Since'] = cache['Last-Modified'] || cache['Date']
+      headers['If-None-Match'] = cache.headers['Etag']
+      headers['If-Modified-Since'] = cache.headers['Last-Modified'] || cache.headers['Date']
     end
     headers.delete_if { |k, v| v.nil? }
-    store(uri.to_s, HTTP.with(headers).get(uri))
+    store(uri.to_s, convert_response(HTTP.with(headers).get(uri)))
   end
 
   def store url, res
-    server.async.store url, res
+    if res.status.to_i == 200 and res.headers['Cache-Control'].to_s !~ /no-cache/
+      debug "storing #{url}"
+      #binding.pry
+      publish('stored', url) if save_cache url, res
+    else
+      debug "not 200 ok #{res.status.inspect}"
+    end
+    res
   end
 
   def pass(request, uri)
     request.headers['Host'] = "#{@target.host}:#{@target.port||80}"
     request.headers.delete 'Accept-Encoding'
-    debug request.url
-    HTTP.request request.method, uri, headers: request.headers, body: request.body.to_s
+    debug "passing #{request.method} #{request.url}"
+    convert_response(HTTP.request(request.method, uri, headers: request.headers, body: request.body.to_s))
   end
 
   def handle_request(request)
@@ -61,10 +69,12 @@ class ProxyConnectionHandler
     uri.port ||= 80
     url = uri.to_s
     debug url
+    need_revalidate = false
     if request.method == 'GET'
-      if upres = Cache.read(url) #and upres.is_a?(HTTPResponse)
+      if upres = load_cache(url) #and upres.is_a?(HTTPResponse)
         debug 'hit'
-        async.revalidate(url)
+        need_revalidate = true
+        
       else
         debug 'miss'
         request.headers.delete 'If-Modified-Since'
@@ -73,15 +83,29 @@ class ProxyConnectionHandler
         store(url, upres)
       end
     else
-      upres = pass(request)
+      upres = pass(request, uri)
     end
 
+    request.respond upres
+    async.revalidate(url) if need_revalidate
+  end
+  protected
+  def convert_response upres
+    return upres if upres.is_a?(Reel::Response)
     h = {}
     upres.headers.each do |key, val|
       h[key]=val
     end
     h.delete "Transfer-Encoding"
-    res = Reel::Response.new(upres.code.to_i, h, upres.body)
-    request.respond res
+    res = Reel::Response.new(upres.code.to_i, h, upres.body.to_s)
+  end
+  def load_cache key
+    if val = Cache.read(key)
+      Reel::Response.new val[:status], val[:headers], val[:body]
+    end
+  end
+
+  def save_cache key, val
+    Cache.write key, {status: val.status, headers: val.headers.to_hash, body: val.body.to_s}
   end
 end

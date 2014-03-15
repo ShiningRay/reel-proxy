@@ -21,7 +21,7 @@ class Analyzer
     src_extractor = attr_extractor['src']
 
     if content = Cache.read(key)
-      unless content['content-type'] =~ /html/i
+      unless content.headers['Content-Type'] =~ /html/i
         return debug("#{key}'not html skip'")
       end
       doc = Nokogiri::HTML(content.body)
