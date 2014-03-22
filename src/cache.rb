@@ -2,6 +2,8 @@ require 'active_support'
 require 'net/http'
 require 'uri'
 require 'cgi'
+require 'digest/sha1'
+
 
 class MyCacheStore < ActiveSupport::Cache::FileStore
   def key_file_path(key)
@@ -9,7 +11,10 @@ class MyCacheStore < ActiveSupport::Cache::FileStore
     path = uri.path
     path = '/' if !path or path == ''
     path = File.join(path, 'index.html') if path[-1] == '/'
-    path << uri.query if uri.query
+    if uri.query
+      path << Digest::SHA1.hexdigest(uri.query)
+    end
+
     path = CGI::unescape(path).gsub(/[<>:"|?*]/, '_')
     fragments = [@cache_path, uri.host, path].compact
     File.join(*fragments)
