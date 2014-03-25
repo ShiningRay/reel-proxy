@@ -1,6 +1,6 @@
 GIT
   remote: git://github.com/ShiningRay/http.git
-  revision: 207a58770bc6c9cf2ea8abae132c3970fed77bf5
+  revision: 712ce4ef73a105a0ec3f7bab26b0922cedb3d35f
   specs:
     http (0.6.0.pre)
       http_parser.rb (~> 0.6.0)

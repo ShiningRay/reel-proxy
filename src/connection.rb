@@ -58,7 +58,7 @@ class ProxyConnectionHandler
   def pass(request, uri)
     request.headers['Host'] = "#{@target.host}:#{@target.port||80}"
     request.headers.delete 'Accept-Encoding'
-    debug "passing #{request.method} #{request.url}"
+    debug "passing #{@target} #{uri} #{request.method} #{request.url}"
     convert_response(HTTP.request(request.method, uri, headers: request.headers, body: request.body.to_s))
   end
 
@@ -66,7 +66,7 @@ class ProxyConnectionHandler
     uri = request.uri.dup
     uri.scheme ||= @target.scheme
     uri.host ||= @target.host
-    uri.port ||= 80
+    uri.port ||= @target.port || 80
     url = uri.to_s
     debug url
     need_revalidate = false
@@ -74,7 +74,6 @@ class ProxyConnectionHandler
       if upres = load_cache(url) #and upres.is_a?(HTTPResponse)
         debug 'hit'
         need_revalidate = true
-        
       else
         debug 'miss'
         request.headers.delete 'If-Modified-Since'

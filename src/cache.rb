@@ -11,6 +11,9 @@ class MyCacheStore < ActiveSupport::Cache::FileStore
     path = uri.path
     path = '/' if !path or path == ''
     path = File.join(path, 'index.html') if path[-1] == '/'
+    if path[-1] !~ /\./
+      path[-1] << '.html'
+    end
     if uri.query
       path << Digest::SHA1.hexdigest(uri.query)
     end
