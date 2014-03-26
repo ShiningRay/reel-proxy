@@ -68,7 +68,6 @@ class ProxyConnectionHandler
     uri.host ||= @target.host
     uri.port ||= @target.port || 80
     url = uri.to_s
-    debug url
     need_revalidate = false
     if request.method == 'GET'
       if upres = load_cache(url) #and upres.is_a?(HTTPResponse)
@@ -84,7 +83,12 @@ class ProxyConnectionHandler
     else
       upres = pass(request, uri)
     end
-
+    if upres.headers['Location']
+      location = URI(upres.headers.delete('Location'))
+      location.host = request.uri.host
+      location.port = request.uri.port
+      upres.headers['Location'] = location.to_s
+    end
     request.respond upres
     async.revalidate(url) if need_revalidate
   end
